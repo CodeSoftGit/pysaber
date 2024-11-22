@@ -16,3 +16,30 @@ Generate text using geometric objects with customizable materials and shaders.
 Easily manage and modify beatmaps using the `Beatmap` and `Difficulty` classes.
 ### Multi-Language Support
 Generate text in multiple languages with Unicode support.
+
+## Example Usage
+```
+if __name__ == "__main__":
+    beatmap = Beatmap(
+        r"CustomWIPLevels\Underneath the Tree\Info.dat"
+    )
+    print(beatmap.difficulties)
+    map_data = beatmap.loadDifficulty("ExpertPlusStandard")
+
+    lrc_file = "lyrics.lrc"
+    color = "#FF0000"
+    x, y, z = 0, 5, 0
+    scale = 0.01
+    depth = 0.001
+    track = "lyrics"
+    centered = True
+    geo = False
+
+    font = ttf_to_font("Comic Sans MS.ttf", 128)
+    map_data.obstacles = append_values(
+        map_data.obstacles,
+        create_text_from_lrc(
+            lrc_file, color, x, y, z, scale, depth, track, centered, font, geo
+        ),
+    )
+```

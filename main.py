@@ -116,7 +116,7 @@ def gen_text(
     return walls
 
 
-def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font) -> list:
+def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font, **kwargs) -> list:
     color = hex_to_rgb(color)
     walls = []
 
@@ -136,7 +136,7 @@ def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font) -> l
             obstacle = {
                 "geometry": {
                     "type": "Cube",
-                    "material": {"color": [1, 0, 0, 100], "shader": "OpaqueLight"},
+                    "material": {"color": [1, 0, 0, 1], "shader": "OpaqueLight"},
                 },
                 "position": [
                     x + line[0] * scale,
@@ -146,6 +146,8 @@ def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font) -> l
                 "scale": [line[2] * scale, line[3] * scale, depth],
                 "track": track,
             }
+            for key, value in kwargs.items():
+                obstacle[key] = value
             walls.append(obstacle)
 
         x += spacing * scale
@@ -426,28 +428,3 @@ def append_values(obj, toAppend) -> list:
     for object in toAppend:
         obj.append(object)
     return obj
-
-
-if __name__ == "__main__":
-    beatmap = Beatmap(
-        r"C:\Users\Code\BSManager\BSInstances\1.29.1\Beat Saber_Data\CustomWIPLevels\Underneath the Tree\Info.dat"
-    )
-    print(beatmap.difficulties)
-    map_data = beatmap.loadDifficulty("ExpertPlusStandard")
-
-    lrc_file = "lyrics.lrc"
-    color = "#FF0000"
-    x, y, z = 0, 5, 0
-    scale = 0.01
-    depth = 0.001
-    track = "lyrics"
-    centered = True
-    geo = False
-
-    font = ttf_to_font("Comic Sans MS.ttf", 128)
-    map_data.obstacles = append_values(
-        map_data.obstacles,
-        create_text_from_lrc(
-            lrc_file, color, x, y, z, scale, depth, track, centered, font, geo
-        ),
-    )
