@@ -184,7 +184,6 @@ def create_text_from_lrc(
     walls = []
 
     for i, (time, text) in enumerate(lyrics):
-        time = time + 1.34
         beat_time = time / beat_duration  # Convert time in seconds to beats
         if i < len(lyrics) - 1:
             duration_seconds = lyrics[i + 1][0] - time
