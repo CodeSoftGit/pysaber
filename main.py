@@ -159,18 +159,32 @@ def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font, **kw
 def parse_lrc(file_path) -> tuple:
     lyrics = []
     tags = {}
+    offset = 0  # Default offset in seconds
     with open(file_path, "r", encoding="utf-8") as file:
         for line in file:
             if line.startswith("["):
-                if ":" in line:
+                if ":" in line and not "<" in line:
                     tag, value = line[1:].split(":", 1)
-                    if tag in ["ti", "ar", "al", "by"]:
+                    if tag in ["ti", "ar", "al", "by", "au", "length", "offset", "re", "ve", "tool", "#"]:
                         tags[tag] = value.strip(" ]\n")
-                    else:
-                        time_str, text = line.split("]", 1)
-                        minutes, seconds = map(float, time_str[1:].split(":"))
-                        time = minutes * 60 + seconds
-                        lyrics.append((time, text.strip()))
+                        if tag == "offset":
+                            try:
+                                offset = float(tags["offset"]) / 1000  # Convert milliseconds to seconds
+                            except ValueError:
+                                logging.warning(f"Invalid offset value: {tags['offset']}. Using 0.")
+                else:
+                    parts = line.split("]")
+                    time_str = parts[0][1:]
+                    words = parts[1].strip().split("<")
+                    for word in words:
+                        if ">" in word:
+                            time_word, text = word.split(">", 1)
+                            try:
+                                minutes, seconds = map(float, time_word.split(":"))
+                                time = minutes * 60 + seconds + offset
+                                lyrics.append((time, text.strip()))
+                            except ValueError:
+                                logging.warning(f"Invalid time format: {time_word}. Skipping word: {word}")
     return tags, lyrics
 
 
@@ -180,7 +194,6 @@ def create_text_from_lrc(
     tags, lyrics = parse_lrc(lrc_file)
     bpm = 160
     beat_duration = 60 / bpm  # Calculate the duration of one beat in seconds
-    time_offset = 0.001  # Small offset to aid spawn performance
     walls = []
 
     for i, (time, text) in enumerate(lyrics):
@@ -205,7 +218,7 @@ def create_text_from_lrc(
                     beat_time,
                     duration_beats,
                     scale,
-                    time_offset,
+                    0.001,  # Small offset to aid spawn performance
                     depth,
                     track,
                     centered,
