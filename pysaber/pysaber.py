@@ -37,7 +37,8 @@ def ttf_to_font(ttf_path, font_size=128) -> dict:
                         while y + block_height < height and np.all(pixels[y + block_height, x:x + block_width] > 0):
                             block_height += 1
                         visited[y:y + block_height, x:x + block_width] = True
-                        char_data.append([x, y, block_width, block_height])
+                        rotation = 0  # Default rotation value
+                        char_data.append([x, y, block_width, block_height, rotation])
             font_data[char_code] = char_data
         except Exception as e:
             logging.warning(f"Failed to process character '{char}' (ASCII {char_code}): {e}")
@@ -81,6 +82,7 @@ def gen_text(text, color, x, y, time, duration, scale, time_offset, depth, track
                     ],
                     "size": [line[2] * scale, line[3] * scale, depth],
                     "track": track,
+                    "localRotation": [0, 0, line[4]]  # Add rotation data
                 },
             }
             walls.append(obstacle)
@@ -120,6 +122,7 @@ def gen_text_geo(text, color, x, y, z, scale, depth, track, centered, font, **kw
                 ],
                 "scale": [line[2] * scale, line[3] * scale, depth],
                 "track": track,
+                "rotation": [0, 0, line[4]]  # Add rotation data
             }
             obstacle.update(kwargs)
             walls.append(obstacle)
