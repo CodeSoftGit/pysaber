@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from PIL import Image, ImageDraw, ImageFont
+import numpy as np
 
 logging.basicConfig(
     filename="debug.log", level=logging.DEBUG, format="%(levelname)s - %(message)s"
@@ -22,26 +23,20 @@ def ttf_to_font(ttf_path, font_size=128) -> dict:
             image = Image.new("L", (width, height), 0)
             draw = ImageDraw.Draw(image)
             draw.text((0, 0), char, 255, font=font)
-            pixels = image.load()
+            pixels = np.array(image)
 
             char_data = [width]
-            visited = set()
+            visited = np.zeros((height, width), dtype=bool)
             for y in range(height):
                 for x in range(width):
-                    if pixels[x, y] > 0 and (x, y) not in visited:
+                    if pixels[y, x] > 0 and not visited[y, x]:
                         block_width = 1
                         block_height = 1
-                        while x + block_width < width and all(
-                            pixels[x + block_width, y + i] > 0 for i in range(block_height)
-                        ):
+                        while x + block_width < width and np.all(pixels[y:y + block_height, x + block_width] > 0):
                             block_width += 1
-                        while y + block_height < height and all(
-                            pixels[x + i, y + block_height] > 0 for i in range(block_width)
-                        ):
+                        while y + block_height < height and np.all(pixels[y + block_height, x:x + block_width] > 0):
                             block_height += 1
-                        for i in range(block_width):
-                            for j in range(block_height):
-                                visited.add((x + i, y + j))
+                        visited[y:y + block_height, x:x + block_width] = True
                         char_data.append([x, y, block_width, block_height])
             font_data[char_code] = char_data
         except Exception as e:
