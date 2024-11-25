@@ -282,8 +282,8 @@ class Beatmap:
             self.info = json.load(f)
             self.difficulties = []
             folder = os.path.dirname(infopath)
-            for diffset in self.info["_difficultyBeatmapSets"]():
-                for diff in diffset["_difficultyBeatmaps"]():
+            for diffset in self.info["_difficultyBeatmapSets"]:
+                for diff in diffset["_difficultyBeatmaps"]:
                     diffpath = os.path.join(folder, diff["_beatmapFilename"])
                     self.difficulties.append(
                         Difficulty(
