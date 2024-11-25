@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import cv2
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
@@ -25,20 +26,15 @@ def ttf_to_font(ttf_path, font_size=128) -> dict:
             draw.text((0, 0), char, 255, font=font)
             pixels = np.array(image)
 
+            # Use OpenCV to find contours
+            contours, _ = cv2.findContours(pixels, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             char_data = [width]
-            visited = np.zeros((height, width), dtype=bool)
-            for y in range(height):
-                for x in range(width):
-                    if pixels[y, x] > 0 and not visited[y, x]:
-                        block_width = 1
-                        block_height = 1
-                        while x + block_width < width and np.all(pixels[y:y + block_height, x + block_width] > 0):
-                            block_width += 1
-                        while y + block_height < height and np.all(pixels[y + block_height, x:x + block_width] > 0):
-                            block_height += 1
-                        visited[y:y + block_height, x:x + block_width] = True
-                        rotation = 0  # Default rotation value
-                        char_data.append([x, y, block_width, block_height, rotation])
+
+            for contour in contours:
+                x, y, w, h = cv2.boundingRect(contour)
+                rotation = 0  # Default rotation value
+                char_data.append([x, y, w, h, rotation])
+
             font_data[char_code] = char_data
         except Exception as e:
             logging.warning(f"Failed to process character '{char}' (ASCII {char_code}): {e}")
